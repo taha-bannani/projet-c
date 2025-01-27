@@ -1,6 +1,8 @@
 # projet-c
 1-Objectif du programme:
 Le programme vise à simuler un système de gestion d'un hôtel en permettant de gérer les chambres, les clients et les réservations. Les principales fonctionnalités incluent l'ajout et l'annulation de réservations, la gestion des tarifs des chambres, ainsi que l'affichage de rapports quotidiens et hebdomadaires.
+
+
 2. Fonctionnalités principales
 Initialisation des chambres :
 
