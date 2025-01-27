@@ -1,9 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define MAX_CHAMBRES 50
-#define MAX_RESERVATIONS 50
-
+#define MAX_CLIENTS 50
 
 typedef struct {
     int numero;
@@ -16,16 +16,80 @@ typedef struct {
     char nom[50];
     char prenom[50];
     char telephone[15];
+    char dateArrivee[15];
+    char dateDepart[15];
     int numeroChambre;
+} Client;
+
+typedef struct {
+    Client client;
+    Chambre *chambre;
 } Reservation;
 
 
 Chambre chambres[MAX_CHAMBRES];
-Reservation reservations[MAX_RESERVATIONS];
+Client clients[MAX_CLIENTS];
 int nbChambres = 0;
-int nbReservations = 0;
+int nbClients = 0;
 
+
+void sauvegarderDonnees() {
+    Client c;
+    FILE *f = fopen("resevation.txt", "a+");
+    if (f == NULL) {
+        printf("Erreur d'ouverture du fichier pour la sauvegarde !\n");
+        return;
+    }
+
+
+    fprintf(f, "%d\n", nbChambres);
+    for (int i = 0; i < nbChambres; i++) {
+        fprintf(f, "%d %s %.2f %d\n", chambres[i].numero, chambres[i].type, chambres[i].tarif, chambres[i].estLibre);
+    }
+
+
+    fprintf(f, "%d\n", nbClients);
+    for (int i = 0; i < nbClients; i++) {
+        fprintf(f, "%s %s %s %d %s %s\n",
+                c.nom,
+                c.prenom,
+                c.telephone,
+                c.numeroChambre,
+                c.dateArrivee,
+                c.dateDepart);
+    }
+}
+void chargerDonnees() {
+    Client c;
+    FILE *f = fopen("resevation.txt", "r");
+    if (f == NULL) {
+        printf("Aucune donn√©e √† charger (fichier inexistant).\n");
+        return;
+    }
+
+
+    fscanf(f, "%d", &nbChambres);
+    for (int i = 0; i < nbChambres; i++) {
+        fscanf(f, "%d %s %f %d", &chambres[i].numero, chambres[i].type, &chambres[i].tarif, &chambres[i].estLibre);
+    }
+
+
+    fscanf(f, "%d", &nbClients);
+    for (int i = 0; i < nbClients; i++) {
+        fscanf(f, "%s %s %s %d %s %s",
+               c.nom,
+               c.prenom,
+               c.telephone,
+               &c.numeroChambre,
+               c.dateArrivee,
+               c.dateDepart);
+    }
+
+    fclose(f);
+    printf("Donn√©es charg√©es avec succ√®s.\n");
+}
 void initialiserChambres() {
+    printf("Initialisation des chambres...\n");
     for (int i = 0; i < MAX_CHAMBRES; i++) {
         chambres[i].numero = i + 1;
         if (i % 3 == 0) {
@@ -43,85 +107,88 @@ void initialiserChambres() {
     }
 }
 
-
 void afficherChambres() {
-    printf("\n--- Liste des chambres ---\n");
+    printf("\nListe des chambres\n");
     for (int i = 0; i < nbChambres; i++) {
-        printf("Chambre %d : Type : %s, Tarif : %.2f, Etat : %s\n",
+        printf("Chambre %d: Type: %s, Tarif: %.2f, Etat: %s\n",
                chambres[i].numero,
                chambres[i].type,
                chambres[i].tarif,
-               chambres[i].estLibre ? "Libre" : "OccupÈe");
+               chambres[i].estLibre ? "Libre" : "Occup√©e");
     }
 }
 
-
 void ajouterReservation() {
-
-
-
-    if (nbReservations >= MAX_RESERVATIONS) {
-        printf("CapacitÈ maximale des rÈservations atteinte !\n");
-
+    if (nbClients >= MAX_CLIENTS) {
+        printf("Capacit√© maximale des clients atteinte !\n");
         return;
     }
 
-    Reservation res;
-    printf("\n--- Ajouter une rÈservation ---\n");
-    printf("Nom : ");
-    scanf("%s", res.nom);
-    printf("PrÈnom : ");
-    scanf("%s", res.prenom);
-    printf("TÈlÈphone : ");
-    scanf("%s", res.telephone);
+    Client c;
+    printf("\n Ajouter une r√©servation\n");
+    printf("Nom du client : ");
+    scanf("%s", c.nom);
+    printf("Pr√©nom du client : ");
+    scanf("%s", c.prenom);
+    printf("T√©l√©phone : ");
+    scanf("%s", c.telephone);
+    printf("Date d'arriv√©e (jj/mm/aaaa) : ");
+    scanf("%s", c.dateArrivee);
+    printf("Date de d√©part (jj/mm/aaaa) : ");
+    scanf("%s", c.dateDepart);
+
 
     int numeroChambre;
-    printf("NumÈro de la chambre souhaitÈe : ");
+    printf("Num√©ro de la chambre souhait√©e : ");
     scanf("%d", &numeroChambre);
 
     if (numeroChambre < 1 || numeroChambre > nbChambres || !chambres[numeroChambre - 1].estLibre) {
-        printf("La chambre n'est pas disponible !\n");
+        printf("Chambre non disponible !\n");
         return;
     }
 
-    res.numeroChambre = numeroChambre;
+    c.numeroChambre = numeroChambre;
     chambres[numeroChambre - 1].estLibre = 0;
-    reservations[nbReservations++] = res;
+    clients[nbClients++] = c;
 
-    printf("RÈservation ajoutÈe avec succËs pour %s %s, chambre %d.\n",
-           res.nom, res.prenom, res.numeroChambre);
+    printf("R√©servation ajout√©e avec succ√®s pour le client %s %s, chambre %d.\n",
+           c.nom, c.prenom, c.numeroChambre);
+           sauvegarderDonnees();
 }
 
 void annulerReservation() {
-
+    printf("\nAnnuler une r√©servation\n");
     int numeroChambre;
-    printf("NumÈro de la chambre ‡ libÈrer : ");
+    printf("Num√©ro de la chambre √† lib√©rer : ");
     scanf("%d", &numeroChambre);
 
-    for (int i = 0; i < nbReservations; i++) {
-        if (reservations[i].numeroChambre == numeroChambre) {
+    if (numeroChambre < 1 || numeroChambre > nbChambres || chambres[numeroChambre - 1].estLibre) {
+        printf("Aucune r√©servation trouv√©e pour cette chambre !\n");
+        return;
+    }
+
+    for (int i = 0; i < nbClients; i++) {
+        if (clients[i].numeroChambre == numeroChambre) {
             chambres[numeroChambre - 1].estLibre = 1;
-            printf("RÈservation de %s %s annulÈe pour la chambre %d.\n",
-                   reservations[i].nom, reservations[i].prenom, numeroChambre);
+            printf("R√©servation pour le client %s %s annul√©e.\n", clients[i].nom, clients[i].prenom);
 
-
-            for (int j = i; j < nbReservations - 1; j++) {
-                reservations[j] = reservations[j + 1];
+            for (int j = i; j < nbClients - 1; j++) {
+                clients[j] = clients[j + 1];
             }
-            nbReservations--;
+            nbClients--;
             return;
         }
     }
-    printf("Aucune rÈservation trouvÈe pour cette chambre !\n");
+    printf("Aucune r√©servation trouv√©e pour cette chambre !\n");
+    sauvegarderDonnees();
 }
 
 void afficherRapportQuotidien() {
-
+    printf("\nRapport quotidien\n");
 
     int chambresLibres = 0;
     int chambresOccupees = 0;
     float revenus = 0.0;
-
 
     for (int i = 0; i < nbChambres; i++) {
         if (chambres[i].estLibre) {
@@ -133,63 +200,59 @@ void afficherRapportQuotidien() {
     }
 
     printf("Chambres libres : %d\n", chambresLibres);
-    printf("Chambres occupÈes : %d\n", chambresOccupees);
-    printf("Revenus journaliers : %.2f \n", revenus);
+    printf("Chambres occup√©es : %d\n", chambresOccupees);
+    printf("Revenus journaliers : %.2f\n", revenus);
 }
 
 void afficherRapportHebdomadaire() {
+    printf("\n Rapport hebdomadaire\n");
 
-
-    int totalReservations;
+    int totalReservations = nbClients;
     float totalRevenue = 0.0;
     int roomsOccupied = 0;
-    totalReservations = nbReservations;
-    for (int i = 0; i < nbReservations; i++) {
-        int chambreIndex = reservations[i].numeroChambre - 1;
+
+    for (int i = 0; i < nbClients; i++) {
+        int chambreIndex = clients[i].numeroChambre - 1;
         totalRevenue += chambres[chambreIndex].tarif;
         roomsOccupied++;
     }
 
+    float occupancyRate = (nbChambres > 0) ? ((float)roomsOccupied / nbChambres) * 100 : 0;
 
-    float occupancyRate;
-    occupancyRate = (nbChambres > 0) ? ((float)roomsOccupied / nbChambres) * 100 : 0;
-
-
-    printf("Nombre total de rÈservations : %d\n", totalReservations);
+    printf("Nombre total de r√©servations : %d\n", totalReservations);
     printf("Revenu hebdomadaire total : %.2f\n", totalRevenue);
     printf("Taux d'occupation : %.2f%%\n", occupancyRate);
 }
 
-
 void modifierTarifs() {
-    printf("\n Modifier les tarifs\n");
+    printf("\nModifier les tarifs \n");
     for (int i = 0; i < nbChambres; i++) {
         printf("Chambre %d (type : %s, tarif actuel : %.2f) : ",
                chambres[i].numero, chambres[i].type, chambres[i].tarif);
         scanf("%f", &chambres[i].tarif);
     }
-    printf("Tarifs modifiÈs avec succËs.\n");
+    printf("Tarifs modifi√©s avec succ√®s.\n");
 }
 
 void afficherMenu() {
-
+    printf("\n Simulateur de gestion d'un hotel\n");
     printf("1. Afficher les chambres\n");
-    printf("2. Ajouter une rÈservation\n");
-    printf("3. Annuler une rÈservation\n");
+    printf("2. Ajouter une r√©servation\n");
+    printf("3. Annuler une r√©servation\n");
     printf("4. Afficher un rapport quotidien\n");
     printf("5. Afficher un rapport hebdomadaire\n");
     printf("6. Modifier les tarifs\n");
     printf("0. Quitter\n");
-    printf("Votre choix : ");
 }
 
 int main() {
-    FILE*f=fopen("Reservation.txt","a+");
+    chargerDonnees();
     initialiserChambres();
     int choix;
 
     do {
         afficherMenu();
+        printf("Votre choix : ");
         scanf("%d", &choix);
 
         switch (choix) {
@@ -215,9 +278,9 @@ int main() {
                 printf(".\n");
                 break;
             default:
-                printf("Choix invalide. Veuillez rÈessayer.\n");
-        }
-    } while (choix != 0);
-   fclose(f);
-    return 0;
-}
+                printf("Choix invalide !\n");
+        }}
+     while (choix != 0);
+
+    return 0;}
+
